@@ -2,519 +2,64 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#090d16">
-    <meta name="description" content="WikiRace por JerryScript — O jogo definitivo de velocidade e estratégia na Wikipédia. Chegue do artigo de largada até o destino final no menor tempo e com menos cliques!">
-    <meta property="og:title" content="WikiRace — JerryScript">
-    <meta property="og:description" content="Navegue entre artigos da Wikipédia no menor tempo e com menos cliques. Desafios diários e corridas personalizadas!">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://jerryscript.me/">
-    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-    <link rel="apple-touch-icon" href="assets/icon.svg">
-    <link rel="manifest" href="manifest.json">
-    <title>WikiRace — JerryScript</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://pt.wikipedia.org">
-    <link rel="preconnect" href="https://en.wikipedia.org">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jerryscript.me</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #090d16;
+        color: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 24px;
+      }
+      .container {
+        max-width: 440px;
+        width: 100%;
+        padding: 48px 32px;
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      }
+      .tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #818cf8;
+        background: rgba(99, 102, 241, 0.15);
+        padding: 4px 12px;
+        border-radius: 9999px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 10px;
+      }
+      p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+    </style>
   </head>
-  <body class="theme-dark">
-    <!-- Canvas de Confetes para Vitória -->
-    <canvas id="confetti-canvas" aria-hidden="true"></canvas>
-
-    <!-- Cabeçalho Principal do App -->
-    <header class="app-header" id="app-header">
-      <div class="header-container">
-        <a href="#lobby" class="brand" id="brand-link" title="Voltar ao início">
-          <span class="brand-icon">⚡</span>
-          <span class="brand-text">WIKI<span class="brand-accent">RACE</span></span>
-          <span class="brand-tag">jerryscript.me</span>
-        </a>
-
-        <div class="header-actions">
-          <!-- Alternador de Idioma (PT / EN) -->
-          <div class="lang-selector" title="Alterar idioma da Wikipédia">
-            <button type="button" class="lang-btn active" data-lang="pt" id="btn-lang-pt">🇧🇷 PT</button>
-            <button type="button" class="lang-btn" data-lang="en" id="btn-lang-en">🇺🇸 EN</button>
-          </div>
-
-          <!-- Mudo / Som -->
-          <button type="button" class="icon-btn" id="btn-toggle-sound" title="Alternar efeitos sonoros" aria-label="Alternar som">
-            <span class="icon" id="sound-icon">🔊</span>
-          </button>
-
-          <!-- Tema Claro / Escuro -->
-          <button type="button" class="icon-btn" id="btn-toggle-theme" title="Alternar tema claro/escuro" aria-label="Alternar tema">
-            <span class="icon" id="theme-icon">🌙</span>
-          </button>
-
-          <!-- Estatísticas -->
-          <button type="button" class="icon-btn" id="btn-open-stats" title="Estatísticas e Recordes" aria-label="Ver estatísticas">
-            <span class="icon">📊</span>
-          </button>
-
-          <!-- Como Jogar -->
-          <button type="button" class="icon-btn" id="btn-open-help" title="Regras e Como Jogar" aria-label="Como jogar">
-            <span class="icon">❓</span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- CONTEÚDO PRINCIPAL: LOBBY (MENU) -->
-    <main class="view-container active" id="view-lobby">
-      <section class="hero-section">
-        <div class="hero-badge">🏁 A Corrida do Conhecimento</div>
-        <h1 class="hero-title">Chegue ao destino clicando apenas em <span class="gradient-text">links da Wikipédia</span></h1>
-        <p class="hero-subtitle">
-          Sem anúncios, sem travamentos e otimizado tanto para polegares no celular quanto para cliques rápidos no PC.
-        </p>
-      </section>
-
-      <!-- CARDS DE MODOS DE JOGO -->
-      <section class="game-modes-grid">
-        <!-- Card 1: Desafio Diário -->
-        <div class="mode-card daily-card featured" id="card-daily">
-          <div class="card-badge">⭐ Desafio Diário</div>
-          <div class="card-header">
-            <h2 class="card-title" id="daily-title">Corrida do Dia</h2>
-            <span class="daily-date" id="daily-date-label">Hoje</span>
-          </div>
-          <p class="card-desc">O mesmo trajeto para todos os jogadores do mundo. Quem termina em menos cliques e tempo?</p>
-          
-          <div class="race-preview-box">
-            <div class="preview-step">
-              <span class="step-label">Largada</span>
-              <span class="step-title" id="daily-start-preview">Carregando...</span>
-            </div>
-            <div class="preview-arrow">➔</div>
-            <div class="preview-step target">
-              <span class="step-label">Objetivo</span>
-              <span class="step-title" id="daily-target-preview">Carregando...</span>
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-primary btn-large btn-glow" id="btn-play-daily">
-            <span class="btn-icon">▶</span> Jogar Desafio Diário
-          </button>
-        </div>
-
-        <!-- Card 2: Corrida Rápida (Dificuldades Curadas) -->
-        <div class="mode-card" id="card-quick">
-          <div class="card-badge">⚡ Corrida Rápida</div>
-          <div class="card-header">
-            <h2 class="card-title">Partida Instantânea</h2>
-          </div>
-          <p class="card-desc">Escolha uma dificuldade pré-selecionada com trajetos testados e dinâmicos.</p>
-
-          <div class="difficulty-picker">
-            <button type="button" class="diff-btn active" data-diff="easy">
-              <span class="diff-dot green"></span>
-              <span class="diff-name">Fácil</span>
-              <span class="diff-hops">~2-3 saltos</span>
-            </button>
-            <button type="button" class="diff-btn" data-diff="medium">
-              <span class="diff-dot yellow"></span>
-              <span class="diff-name">Médio</span>
-              <span class="diff-hops">~4-5 saltos</span>
-            </button>
-            <button type="button" class="diff-btn" data-diff="hard">
-              <span class="diff-dot red"></span>
-              <span class="diff-name">Difícil</span>
-              <span class="diff-hops">~6+ saltos</span>
-            </button>
-          </div>
-
-          <button type="button" class="btn btn-secondary btn-large" id="btn-play-quick">
-            <span class="btn-icon">⚡</span> Iniciar Partida
-          </button>
-        </div>
-
-        <!-- Card 3: Corrida Aleatória -->
-        <div class="mode-card" id="card-random">
-          <div class="card-badge">🎲 Exploração</div>
-          <div class="card-header">
-            <h2 class="card-title">Aleatório Total</h2>
-          </div>
-          <p class="card-desc">Sorteie dois tópicos aleatórios da enciclopédia para testar sua capacidade de improviso.</p>
-
-          <div class="random-tags">
-            <span class="tag">Ciência</span>
-            <span class="tag">História</span>
-            <span class="tag">Cultura Pop</span>
-            <span class="tag">Geografia</span>
-          </div>
-
-          <button type="button" class="btn btn-secondary btn-large" id="btn-play-random">
-            <span class="btn-icon">🎲</span> Sortear Artigos
-          </button>
-        </div>
-
-        <!-- Card 4: Desafio Personalizado / Duelo -->
-        <div class="mode-card custom-card" id="card-custom">
-          <div class="card-badge">🎯 Personalizado</div>
-          <div class="card-header">
-            <h2 class="card-title">Criar Desafio</h2>
-          </div>
-          <p class="card-desc">Digite qualquer artigo de largada e de destino para jogar ou desafiar amigos.</p>
-
-          <div class="custom-inputs">
-            <div class="input-group">
-              <label for="custom-start-input">Artigo de Início:</label>
-              <div class="input-autocomplete-wrapper">
-                <input type="text" id="custom-start-input" placeholder="Ex: Albert Einstein" autocomplete="off">
-                <div class="autocomplete-list" id="start-autocomplete-list" hidden></div>
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label for="custom-target-input">Artigo Objetivo:</label>
-              <div class="input-autocomplete-wrapper">
-                <input type="text" id="custom-target-input" placeholder="Ex: Pizza" autocomplete="off">
-                <div class="autocomplete-list" id="target-autocomplete-list" hidden></div>
-              </div>
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-primary btn-large" id="btn-play-custom">
-            <span class="btn-icon">🚀</span> Iniciar Desafio Personalizado
-          </button>
-        </div>
-      </section>
-
-      <!-- SEÇÃO DE VANTAGENS / RECORDES -->
-      <section class="features-section">
-        <h3 class="features-heading">Por que o WikiRace JerryScript é melhor?</h3>
-        <div class="features-grid">
-          <div class="feature-item">
-            <span class="feature-icon">🚀</span>
-            <h4>Carregamento Instantâneo</h4>
-            <p>O HTML é limpo e otimizado direto da API com cache na memória. Sem scripts lentos, sem anúncios e com troca imediata de página.</p>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📱</span>
-            <h4>Feito para o Celular</h4>
-            <p>Links com área de toque espaçosa para não errar cliques com o polegar, tabelas com rolagem suave e infobox colapsável.</p>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">🔍</span>
-            <h4>Filtro de Links Rápido</h4>
-            <p>Encontre qualquer link específico na página pelo campo de busca inteligente sem precisar de Ctrl+F no computador.</p>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">🎯</span>
-            <h4>Visualizador de Objetivo</h4>
-            <p>Veja a imagem e resumo do seu destino a qualquer momento para planejar suas pontes conceituais com clareza.</p>
-          </div>
-        </div>
-      </section>
+  <body>
+    <main class="container">
+      <span class="tag">Em breve</span>
+      <h1>jerryscript.me</h1>
+      <p>Novo projeto em desenvolvimento.</p>
     </main>
-
-    <!-- CONTEÚDO PRINCIPAL: TELA DA CORRIDA ATIVA -->
-    <div class="view-container" id="view-game" hidden>
-      <!-- BARRA SUPERIOR STICKY DA CORRIDA (HUD) -->
-      <aside class="race-hud" id="race-hud">
-        <div class="hud-container">
-          <!-- Destino / Meta -->
-          <div class="hud-target-block">
-            <span class="hud-meta-label">OBJETIVO:</span>
-            <button type="button" class="hud-target-badge" id="hud-target-btn" title="Ver detalhes do artigo objetivo">
-              <span class="target-pulse-dot"></span>
-              <span class="hud-target-title" id="hud-target-title">Destino</span>
-              <span class="hud-peek-icon" aria-hidden="true">ℹ️</span>
-            </button>
-          </div>
-
-          <!-- Métricas: Cliques e Cronômetro -->
-          <div class="hud-stats-block">
-            <div class="hud-stat" title="Número de links clicados">
-              <span class="stat-icon">👣</span>
-              <span class="stat-val" id="hud-clicks-count">0</span>
-              <span class="stat-unit">cliques</span>
-            </div>
-            <div class="hud-stat timer" title="Tempo decorrido">
-              <span class="stat-icon">⏱️</span>
-              <span class="stat-val font-mono" id="hud-timer">00:00.0</span>
-            </div>
-          </div>
-
-          <!-- Ações da Corrida -->
-          <div class="hud-actions-block">
-            <button type="button" class="hud-action-btn" id="btn-hud-filter" title="Buscar link na página (Atalho: /)">
-              <span class="hud-icon">🔍</span>
-              <span class="hud-btn-text">Buscar Link</span>
-            </button>
-            <button type="button" class="hud-action-btn" id="btn-hud-undo" title="Desfazer último clique (Atalho: Z)" disabled>
-              <span class="hud-icon">↩️</span>
-              <span class="hud-btn-text">Voltar</span>
-            </button>
-            <button type="button" class="hud-action-btn" id="btn-hud-path" title="Ver histórico do trajeto">
-              <span class="hud-icon">📜</span>
-              <span class="hud-btn-text">Trajeto</span>
-            </button>
-            <button type="button" class="hud-action-btn danger" id="btn-hud-giveup" title="Desistir da corrida">
-              <span class="hud-icon">🏳️</span>
-              <span class="hud-btn-text">Desistir</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      <!-- BARRA FLUTUANTE DE BUSCA / FILTRO DE LINKS (REVOLUCIONÁRIA PARA MOBILE & PC) -->
-      <section class="link-search-drawer" id="link-search-drawer" hidden>
-        <div class="search-drawer-content">
-          <div class="search-input-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="link-search-input" placeholder="Filtrar links na página atual..." autocomplete="off">
-            <button type="button" class="search-clear-btn" id="btn-clear-search" title="Limpar" hidden>✕</button>
-          </div>
-          <div class="search-counter" id="search-counter">0 encontrados</div>
-          <div class="search-nav-controls">
-            <button type="button" class="search-nav-btn" id="btn-prev-match" title="Anterior" disabled>▲</button>
-            <button type="button" class="search-nav-btn" id="btn-next-match" title="Próximo" disabled>▼</button>
-            <button type="button" class="search-close-btn" id="btn-close-search" title="Fechar busca">✕</button>
-          </div>
-        </div>
-        <!-- Lista de Resultados Rápidos para toque no Mobile -->
-        <div class="search-results-list" id="search-results-list" hidden></div>
-      </section>
-
-      <!-- CONTAINER DO ARTIGO -->
-      <article class="article-wrapper" id="article-wrapper">
-        <!-- Cabeçalho do Artigo Atual -->
-        <div class="article-header" id="article-header">
-          <div class="article-breadcrumbs" id="article-breadcrumbs">
-            <span class="crumb-start" id="crumb-start">Largada</span>
-            <span class="crumb-sep">➔ ... ➔</span>
-            <span class="crumb-current" id="crumb-current">Artigo Atual</span>
-          </div>
-          <h1 class="article-title" id="article-title">Carregando...</h1>
-          <div class="article-meta">
-            <span class="article-lang-badge" id="article-lang-badge">Wikipédia PT</span>
-            <a href="#" target="_blank" rel="noopener noreferrer" class="article-source-link" id="article-source-link">
-              Abrir original na Wikipédia ↗
-            </a>
-          </div>
-        </div>
-
-        <!-- Skeleton Loader (Exibido durante o carregamento de página) -->
-        <div class="skeleton-loader" id="skeleton-loader" hidden>
-          <div class="skeleton-line title"></div>
-          <div class="skeleton-line paragraph"></div>
-          <div class="skeleton-line paragraph"></div>
-          <div class="skeleton-line paragraph short"></div>
-          <div class="skeleton-line paragraph"></div>
-          <div class="skeleton-line paragraph"></div>
-        </div>
-
-        <!-- Corpo do Artigo Renderizado & Sanitizado -->
-        <div class="article-body" id="article-body">
-          <!-- Conteúdo da Wikipédia injetado dinamicamente -->
-        </div>
-
-        <!-- Mensagem de Erro de Conexão se falhar -->
-        <div class="article-error" id="article-error" hidden>
-          <div class="error-icon">⚠️</div>
-          <h3 id="error-title">Não foi possível carregar o artigo</h3>
-          <p id="error-desc">Houve uma falha ao contatar a Wikipédia. Verifique sua conexão e tente novamente.</p>
-          <button type="button" class="btn btn-primary" id="btn-retry-fetch">Tentar Novamente</button>
-        </div>
-      </article>
-
-      <!-- BOTÃO FLUTUANTE DE BUSCA RÁPIDA (PARA CELULARES) -->
-      <button type="button" class="fab-search" id="fab-search" title="Buscar link na página (Atalho: /)">
-        <span class="fab-icon">🔍</span>
-      </button>
-    </div>
-
-    <!-- MODAL 1: VITÓRIA -->
-    <div class="modal-overlay" id="modal-victory" hidden>
-      <div class="modal-card victory-card" role="dialog" aria-modal="true" aria-labelledby="victory-heading">
-        <div class="victory-header">
-          <div class="trophy-badge">🏆</div>
-          <h2 class="victory-title" id="victory-heading">VOCÊ CHEGOU AO DESTINO!</h2>
-          <p class="victory-subtitle" id="victory-subtitle">Parabéns pela velocidade e raciocínio enciclopédico!</p>
-        </div>
-
-        <div class="victory-stats-row">
-          <div class="victory-stat-box">
-            <span class="v-stat-label">TEMPO TOTAL</span>
-            <span class="v-stat-val font-mono" id="victory-time">00:00.0</span>
-          </div>
-          <div class="victory-stat-box">
-            <span class="v-stat-label">CLIQUES DADOS</span>
-            <span class="v-stat-val" id="victory-clicks">0</span>
-          </div>
-        </div>
-
-        <!-- Linha do Tempo do Trajeto -->
-        <div class="victory-path-container">
-          <h3 class="path-title">Trilha Percorrida:</h3>
-          <div class="path-timeline" id="victory-path-timeline">
-            <!-- Steps gerados via JS -->
-          </div>
-        </div>
-
-        <!-- Ações do Modal -->
-        <div class="victory-actions">
-          <button type="button" class="btn btn-primary btn-glow btn-full" id="btn-share-result">
-            <span class="btn-icon">📋</span> Copiar Resultado para Compartilhar
-          </button>
-          <div class="dual-buttons">
-            <button type="button" class="btn btn-secondary" id="btn-play-again">Jogar Novamente</button>
-            <button type="button" class="btn btn-secondary" id="btn-return-lobby">Voltar ao Menu</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 2: PRÉVIA DO OBJETIVO (TARGET PEEK) -->
-    <div class="modal-overlay" id="modal-target-peek" hidden>
-      <div class="modal-card peek-card" role="dialog" aria-modal="true" aria-labelledby="peek-title">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-icon">🎯</span>
-            <h2 class="modal-title" id="peek-title">Objetivo da Corrida</h2>
-          </div>
-          <button type="button" class="modal-close-btn" data-close="modal-target-peek">✕</button>
-        </div>
-
-        <div class="peek-content">
-          <div class="peek-image-wrap" id="peek-image-wrap" hidden>
-            <img src="" alt="" id="peek-image" class="peek-img" loading="lazy">
-          </div>
-          <h3 class="peek-article-title" id="peek-article-title">Destino</h3>
-          <p class="peek-description" id="peek-description"></p>
-          <div class="peek-extract" id="peek-extract">Carregando resumo do artigo...</div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary btn-full" data-close="modal-target-peek">Continuar Corrida</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 3: HISTÓRICO DO TRAJETO ATUAL -->
-    <div class="modal-overlay" id="modal-path-history" hidden>
-      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-icon">📜</span>
-            <h2 class="modal-title" id="history-modal-title">Seu Trajeto Atual</h2>
-          </div>
-          <button type="button" class="modal-close-btn" data-close="modal-path-history">✕</button>
-        </div>
-
-        <div class="history-content">
-          <p class="history-summary" id="history-summary">Você deu 0 cliques até agora:</p>
-          <div class="history-list" id="history-list"></div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-full" data-close="modal-path-history">Fechar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 4: ESTATÍSTICAS E RECORDES -->
-    <div class="modal-overlay" id="modal-stats" hidden>
-      <div class="modal-card stats-card" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-icon">📊</span>
-            <h2 class="modal-title" id="stats-modal-title">Suas Estatísticas</h2>
-          </div>
-          <button type="button" class="modal-close-btn" data-close="modal-stats">✕</button>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="s-val" id="stat-total-games">0</span>
-            <span class="s-label">Partidas Jogadas</span>
-          </div>
-          <div class="stat-card">
-            <span class="s-val" id="stat-total-wins">0</span>
-            <span class="s-label">Vitórias</span>
-          </div>
-          <div class="stat-card">
-            <span class="s-val" id="stat-win-rate">0%</span>
-            <span class="s-label">Taxa de Vitória</span>
-          </div>
-          <div class="stat-card">
-            <span class="s-val font-mono" id="stat-best-time">--:--</span>
-            <span class="s-label">Melhor Tempo</span>
-          </div>
-          <div class="stat-card">
-            <span class="s-val" id="stat-best-clicks">--</span>
-            <span class="s-label">Menor Qtd. de Cliques</span>
-          </div>
-          <div class="stat-card">
-            <span class="s-val" id="stat-daily-streak">0</span>
-            <span class="s-label">Sequência Diária 🔥</span>
-          </div>
-        </div>
-
-        <div class="modal-footer dual-buttons">
-          <button type="button" class="btn btn-ghost danger-text" id="btn-reset-stats">Resetar Estatísticas</button>
-          <button type="button" class="btn btn-secondary" data-close="modal-stats">Fechar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 5: COMO JOGAR & REGRAS -->
-    <div class="modal-overlay" id="modal-help" hidden>
-      <div class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-icon">💡</span>
-            <h2 class="modal-title" id="help-modal-title">Como Jogar WikiRace</h2>
-          </div>
-          <button type="button" class="modal-close-btn" data-close="modal-help">✕</button>
-        </div>
-
-        <div class="help-content">
-          <div class="rule-box">
-            <h4>🎯 Objetivo Central</h4>
-            <p>Você recebe um <strong>Artigo Inicial</strong> e um <strong>Artigo Objetivo</strong>. Seu desafio é navegar entre eles usando <em>apenas os links azuis internos</em> contidos no texto!</p>
-          </div>
-
-          <div class="rule-box">
-            <h4>🧠 Estratégias de Mestre ("Hubs")</h4>
-            <p>A maioria dos artigos da Wikipédia se conecta em poucos graus de separação passando por "artigos-ponte" (Hubs), como:</p>
-            <ul>
-              <li><strong>Países e Cidades</strong> (ex: Brasil, Estados Unidos, Londres)</li>
-              <li><strong>Campos da Ciência</strong> (ex: Física, Biologia, Filosofia)</li>
-              <li><strong>Fenômenos e Séculos</strong> (ex: Século XX, Segunda Guerra Mundial, Internet)</li>
-            </ul>
-          </div>
-
-          <div class="rule-box">
-            <h4>⌨️ Atalhos de Teclado no PC</h4>
-            <ul>
-              <li><kbd>/</kbd> ou <kbd>Ctrl+F</kbd>: Abrir busca rápida de links na página atual</li>
-              <li><kbd>Z</kbd>: Desfazer / Voltar para a página anterior</li>
-              <li><kbd>H</kbd>: Abrir prévia e resumo do Objetivo</li>
-              <li><kbd>Esc</kbd>: Fechar qualquer modal</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary btn-full" data-close="modal-help">Entendi, vamos correr!</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION -->
-    <div class="toast-container" id="toast-container" aria-live="polite"></div>
-
-    <!-- RODAPÉ DO SITE -->
-    <footer class="app-footer">
-      <div class="footer-container">
-        <p>Desenvolvido com carinho por <a href="https://github.com/ScriptJerry" target="_blank" rel="noopener noreferrer">Richard Brito (JerryScript)</a> · Hospedado em <a href="https://jerryscript.me">jerryscript.me</a></p>
-        <p class="footer-note">Conteúdo fornecido pela Wikimedia Foundation sob licença Creative Commons CC BY-SA 4.0.</p>
-      </div>
-    </footer>
-
-    <script src="game.js"></script>
   </body>
 </html>
