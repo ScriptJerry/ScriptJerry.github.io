@@ -3,63 +3,184 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>jerryscript.me</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #090d16;
-        color: #f8fafc;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        padding: 24px;
-      }
-      .container {
-        max-width: 440px;
-        width: 100%;
-        padding: 48px 32px;
-        background: #0f172a;
-        border: 1px solid #1e293b;
-        border-radius: 16px;
-        text-align: center;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      }
-      .tag {
-        display: inline-block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #818cf8;
-        background: rgba(99, 102, 241, 0.15);
-        padding: 4px 12px;
-        border-radius: 9999px;
-        margin-bottom: 16px;
-      }
-      h1 {
-        font-size: 1.8rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        margin-bottom: 10px;
-      }
-      p {
-        color: #94a3b8;
-        font-size: 0.95rem;
-        line-height: 1.6;
-      }
-    </style>
+    <title>JerryScript</title>
+    <meta name="description" content="jerryscript.me">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
-    <main class="container">
-      <span class="tag">Em breve</span>
-      <h1>jerryscript.me</h1>
-      <p>Novo projeto em desenvolvimento.</p>
+  <body class="is-loading">
+    <!-- TELA DE LOADING CÊNICA -->
+    <div class="preloader" id="preloader" aria-hidden="true">
+      <div class="preloader-inner">
+        <div class="preloader-vinyl">
+          <div class="preloader-grooves"></div>
+          <div class="preloader-center">
+            <span>JS</span>
+          </div>
+        </div>
+        <div class="preloader-brand">JERRYSCRIPT</div>
+        <div class="preloader-bar-track">
+          <div class="preloader-bar-fill" id="preloader-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Iluminação cênica e atmosfera -->
+    <div class="museum-spotlight" id="museum-spotlight" aria-hidden="true"></div>
+    <div class="ambient-dust" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="grain-layer" aria-hidden="true"></div>
+
+    <header class="museum-header reveal-top">
+      <div class="header-inner">
+        <a href="#" class="museum-brand">
+          <span class="brand-crest">JS</span>
+          <span class="brand-main">JERRYSCRIPT</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="museum-main">
+      <!-- VITRINE 3D PRINCIPAL -->
+      <section class="exhibit-hall" id="exposicao">
+        <div class="exhibit-stage-col reveal-left">
+          <div class="exhibit-stage" id="stage-3d">
+            <div class="stage-beam" aria-hidden="true"></div>
+
+            <div class="scene-3d" id="scene-3d">
+              <div class="rig-float-wrapper" id="rig-float-wrapper">
+                <div class="rig-3d vinyl-out" id="rig-3d">
+                  <div class="vinyl-disc-wrapper" id="vinyl-disc-wrapper">
+                    <div class="vinyl-disc spinning" id="vinyl-disc" data-vinyl-style="classic-black">
+                      <div class="vinyl-rotor" id="vinyl-rotor">
+                        <div class="vinyl-grooves"></div>
+                        <div class="vinyl-label" id="vinyl-center-label">
+                          <img
+                            src="assets/covers/dark-side-label.jpg"
+                            alt=""
+                            class="vinyl-label-img"
+                            id="vinyl-label-img"
+                            draggable="false"
+                          >
+                          <div class="spindle-hole"></div>
+                        </div>
+                      </div>
+                      <div class="vinyl-sheen" id="vinyl-sheen" aria-hidden="true"></div>
+                    </div>
+                  </div>
+
+                  <div class="sleeve-3d" id="sleeve-3d">
+                    <div class="sleeve-face sleeve-front" id="sleeve-front">
+                      <div class="sleeve-art" id="sleeve-art-container"></div>
+                      <div class="sleeve-ringwear" aria-hidden="true"></div>
+                      <div class="sleeve-glare" id="sleeve-glare" aria-hidden="true"></div>
+                    </div>
+
+                    <div class="sleeve-face sleeve-spine">
+                      <span id="spine-text">PINK FLOYD — THE DARK SIDE OF THE MOON</span>
+                    </div>
+
+                    <div class="sleeve-face sleeve-back" id="sleeve-back">
+                      <img
+                        src="assets/covers/dark-side-back.jpg"
+                        alt=""
+                        class="sleeve-cover-img"
+                        id="sleeve-back-img"
+                        draggable="false"
+                      >
+                      <div class="sleeve-ringwear" aria-hidden="true"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pedestal-shadow" aria-hidden="true"></div>
+
+            <div class="exhibit-controls" role="group">
+              <button type="button" class="gallery-btn primary" id="btn-toggle-vinyl">
+                <span id="btn-vinyl-label">Guardar Disco</span>
+              </button>
+              <button type="button" class="gallery-btn" id="btn-flip-sleeve">
+                <span>Virar Capa</span>
+              </button>
+              <button type="button" class="gallery-btn icon-only" id="btn-reset-angle">
+                <span>Centralizar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="exhibit-plaque-col reveal-right">
+          <div class="museum-plaque" id="museum-plaque">
+            <div class="plaque-content-anim" id="plaque-anim">
+              <div class="plaque-top">
+                <span class="plaque-number" id="exhibit-index">01 / 08</span>
+                <span class="plaque-era" id="active-era-tag">1973 • PROGRESSIVE ROCK</span>
+              </div>
+
+              <h1 class="plaque-title" id="active-album-title">The Dark Side of the Moon</h1>
+              <div class="plaque-artist" id="active-album-artist">Pink Floyd</div>
+
+              <div class="plaque-divider"></div>
+
+              <p class="plaque-description" id="active-album-notes">
+                Obra-prima lançada em março de 1973, gravada no Abbey Road Studios. A arte icônica do estúdio Hipgnosis traz o prisma dispersando a luz na capa frontal e convergindo o espectro na contracapa.
+              </p>
+
+              <dl class="plaque-specs">
+                <div>
+                  <dt>GRAVADORA</dt>
+                  <dd id="spec-studio">Harvest Records</dd>
+                </div>
+                <div>
+                  <dt>CATÁLOGO</dt>
+                  <dd id="active-cat-num">SHVL 804</dd>
+                </div>
+                <div>
+                  <dt>FORMATO</dt>
+                  <dd>12" LP • 33⅓ RPM</dd>
+                </div>
+              </dl>
+
+              <div class="plaque-tracks-wrap">
+                <div class="plaque-tracks-header">FAIXAS</div>
+                <ol class="plaque-tracklist" id="back-tracklist"></ol>
+              </div>
+            </div>
+
+            <div class="plaque-nav">
+              <button type="button" class="plaque-nav-btn" id="btn-prev-album">← Anterior</button>
+              <button type="button" class="plaque-nav-btn" id="btn-next-album">Próximo →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GRADE DE DISCOS -->
+      <section class="gallery-Wing" id="galeria">
+        <div class="gallery-grid" id="crate-grid"></div>
+      </section>
+
+      <footer class="museum-footer" id="contato">
+        <div class="footer-inner">
+          <span class="footer-title">jerryscript.me</span>
+          <div class="footer-links">
+            <a href="#discord" class="footer-link" data-copy-discord="JerryScript" id="discord-copy-label">
+              Discord: JerryScript
+            </a>
+          </div>
+        </div>
+      </footer>
     </main>
+
+    <div class="museum-toast" id="cheat-toast" hidden aria-live="polite">
+      <span id="cheat-toast-desc"></span>
+    </div>
+
+    <script src="app.js"></script>
   </body>
 </html>
