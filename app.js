@@ -469,37 +469,76 @@
   }
 
   // =========================================================================
-  // 2. INTERAÇÃO 3D COM O MOUSE / TOQUE NO PALCO
+  // 2. INTERAÇÃO 3D COM O MOUSE / TOQUE NO PALCO (Suave em Desktop e iPhone)
   // =========================================================================
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragStartRotX = 12;
+  let dragStartRotY = -14;
+  let hasDragged = false;
+
   stage?.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("button, a")) return;
+    if (e.target.closest("button, a, .tt-power-led, .tt-tonearm-assembly, .tt-spindle-pin, .tt-plinth-badge, #vinyl-center-label, .sleeve-spine")) {
+      return;
+    }
     isDragging = true;
+    hasDragged = false;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStartRotX = rotX;
+    dragStartRotY = rotY;
     rig.classList.remove("Smooth-transition");
-    stage.setPointerCapture(e.pointerId);
+    if (e.pointerType !== "touch") {
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    }
   });
 
   stage?.addEventListener("pointermove", (e) => {
-    const rect = stage.getBoundingClientRect();
-    const normX = (e.clientX - rect.left) / rect.width - 0.5;
-    const normY = (e.clientY - rect.top) / rect.height - 0.5;
     const baseRotX = activeIdx === -1 ? 12 : 5;
 
     if (isDragging) {
-      rotY = Math.max(-45, Math.min(45, normX * 85));
-      rotX = Math.max(-28, Math.min(32, -normY * 58));
-    } else {
-      rotY = -12 + normX * 24;
-      rotX = baseRotX - normY * 18;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+        hasDragged = true;
+      }
+      const sensitivity = e.pointerType === "touch" ? 0.32 : 0.26;
+      rotY = Math.max(-42, Math.min(42, dragStartRotY + dx * sensitivity));
+      rotX = Math.max(-24, Math.min(28, dragStartRotX - dy * (sensitivity * 0.75)));
+      updateRigTransform();
+      return;
     }
-    updateRigTransform();
+
+    // Hover suave apenas para mouse em desktop
+    if (e.pointerType === "mouse") {
+      const rect = stage.getBoundingClientRect();
+      const normX = (e.clientX - rect.left) / rect.width - 0.5;
+      const normY = (e.clientY - rect.top) / rect.height - 0.5;
+      rotY = -12 + normX * 22;
+      rotX = baseRotX - normY * 16;
+      updateRigTransform();
+    }
   });
 
-  stage?.addEventListener("pointerup", () => {
+  function endStageDrag(e) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // No celular, um toque rápido no álbum retira ou guarda o vinil suavemente
+    if (e && e.pointerType === "touch" && !hasDragged && activeIdx !== -1) {
+      if (!e.target.closest("button, a, .tt-power-led, .tt-tonearm-assembly, .tt-spindle-pin, .tt-plinth-badge, #vinyl-center-label, .sleeve-spine")) {
+        setVinylOut(!isVinylOut);
+      }
+    }
+  }
+
+  stage?.addEventListener("pointerup", endStageDrag);
+  stage?.addEventListener("pointercancel", () => {
     isDragging = false;
   });
 
-  stage?.addEventListener("pointerleave", () => {
-    if (!isDragging) {
+  stage?.addEventListener("pointerleave", (e) => {
+    if (!isDragging && e.pointerType === "mouse") {
       rig.classList.add("Smooth-transition");
       rotX = activeIdx === -1 ? 12 : 5;
       rotY = -14;
@@ -609,7 +648,7 @@
   });
 
   // =========================================================================
-  // 4. SINTETIZADOR WEB AUDIO API & EASTER EGGS SILENCIOSOS EM TODOS OS CANTOS
+  // 4. SINTETIZADOR WEB AUDIO API & EASTER EGGS 100% SILENCIOSOS (SEM TOAST)
   // =========================================================================
   let audioCtx = null;
   let crackleNode = null;
@@ -682,7 +721,6 @@
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
       const r = Math.random();
-      // Ruído sutil de fundo + estalos ocasionais de poeira na agulha
       data[i] = (Math.random() * 2 - 1) * 0.012 + (r > 0.9985 ? (Math.random() * 2 - 1) * 0.22 : 0);
     }
 
@@ -723,7 +761,6 @@
     const active = document.body.classList.toggle("egg-prism-mode");
     cornerTL.classList.toggle("is-active", active);
     playSynthChord(active ? [293.66, 369.99, 440, 554.37, 659.25] : [329.63, 246.94], 1.6, "triangle");
-    showToast(active ? " prism // spectrum dispersion" : " prism // off");
   });
 
   // Canto Superior Direito: Tempestade de Brasas (Wish You Were Here / Iowa)
@@ -731,7 +768,6 @@
     const active = document.body.classList.toggle("egg-ember-mode");
     cornerTR.classList.toggle("is-active", active);
     playSynthChord(active ? [146.83, 220, 293.66, 349.23] : [220, 146.83], 1.5, "sawtooth");
-    showToast(active ? "🔥 how I wish you were here..." : "🔥 cinzas apagadas");
   });
 
   // Canto Inferior Esquerdo: Ciclar Rotação do Motor (33⅓ -> 45 -> 78 RPM)
@@ -744,11 +780,12 @@
 
     if (activeIdx === -1) {
       eraTagEl.textContent = `EM ESPERA • ${sp.label}`;
+    } else if (activeIdx === 99) {
+      eraTagEl.textContent = `ACETATE • ${sp.label}`;
     } else {
       const baseEra = ALBUMS[activeIdx]?.eraTag || "LP";
       eraTagEl.textContent = speedIdx === 0 ? baseEra : `${baseEra} • ${sp.label}`;
     }
-    showToast(`Motor Direct Drive: ${sp.label}`);
   }
 
   cornerBL?.addEventListener("click", cycleTurntableSpeed);
@@ -759,7 +796,6 @@
     const active = document.body.classList.toggle("egg-flashlight-mode");
     cornerBR.classList.toggle("is-active", active);
     playMechanicalClick(active ? 95 : 210);
-    showToast(active ? "🔦 breu total" : "💡 luzes da galeria acesas");
   });
 
   window.addEventListener("pointermove", (e) => {
@@ -783,7 +819,6 @@
     const spinning = ttPlatter?.classList.toggle("is-spinning");
     ttPowerLed.classList.toggle("is-overdrive", Boolean(spinning));
     playMechanicalClick(spinning ? 280 : 110);
-    showToast(spinning ? "⚡ Prato estroboscópico: LIGADO" : "⚡ Prato em repouso");
   });
 
   // Clicar no braço da agulha (Tonearm): move o braço para o prato e ativa o chiado real de vinil
@@ -796,7 +831,6 @@
     }
     toggleVinylCrackle(playing);
     playMechanicalClick(playing ? 240 : 150);
-    showToast(playing ? "針 Agulha no sulco // Chiado analógico ativo" : "針 Braço recolhido");
   });
 
   // Clicar no pino central da vitrola ou no selo central do vinil: Backmasking (Giro Reverso!)
@@ -806,18 +840,16 @@
     vinylDisc?.classList.toggle("reverse-spin", isReversed);
     ttPlatter?.classList.toggle("reverse-spin", isReversed);
     playSynthChord(isReversed ? [440, 392, 311.13, 233.08] : [233.08, 311.13, 392, 440], 1.2, "triangle");
-    showToast(isReversed ? "↺ Backmasking // Rotação reversa (-33⅓ RPM)" : "↻ Rotação normal (+33⅓ RPM)");
   }
 
   ttSpindle?.addEventListener("click", toggleBackmasking);
   vinylCenterLabel?.addEventListener("click", toggleBackmasking);
 
-  // Clicar na inscrição "JERRYSCRIPT // DIRECT DRIVE" na base da vitrola: Quartz Lock Pitch
+  // Clicar na inscrição "JERRYSCRIPT // DIRECT DRIVE" na base da vitrola: Chiado analógico
   ttBadge?.addEventListener("click", (e) => {
     e.stopPropagation();
-    const active = toggleVinylCrackle();
+    toggleVinylCrackle();
     playMechanicalClick(320);
-    showToast(active ? "🔊 Pré-amplificador valvulado: Chiado de agulha ON" : "🔇 Pré-amplificador valvulado: OFF");
   });
 
   // --- C. CABEÇALHO, PLACA, LOMBADA, FAIXAS E RODAPÉ ---
@@ -858,6 +890,7 @@
     artistEl.textContent = "JerryScript // Master Dubplate";
     specStudioEl.textContent = "Abbey Road Mastering";
     catNumEl.textContent = "JS-000-TP";
+    catNumEl.classList.remove("is-etched");
     notesEl.textContent =
       "Prensagem secreta de teste em acetato dourado translúcido. Corte direto no torno Neumann VMS-70 sem compressão.";
     vinylDisc.setAttribute("data-vinyl-style", "test-pressing-gold");
@@ -870,28 +903,28 @@
 
     setVinylOut(true);
     playSynthChord([220, 277.18, 329.63, 440, 554.37], 1.9, "triangle");
-    showToast("📀 Disco Secreto #09 // Test Pressing colocado no prato");
   });
 
-  // Clicar no Código de Catálogo ou na Lombada: Revela a inscrição oculta gravada na matriz (Deadwax Runout)
+  // Clicar no Código de Catálogo ou na Lombada: Alterna silenciosamente para a inscrição da matriz (Deadwax)
   const DEADWAX_ETCHINGS = {
-    "dark-side": "Matrix Runout: SHVL 804 A-2 // 'THERE IS NO DARK SIDE OF THE MOON REALLY'",
-    "wish-you-were-here": "Matrix Runout: SHVL 814 A-1 // 'SHINE ON SYD'",
-    "led-zep-iv": "Matrix Runout: PORKY / PECKO DUCK // 'SO MOTE IT BE'",
-    "back-in-black": "Matrix Runout: MASTERDISK RL // 'FOR BON'",
-    "slipknot-1999": "Matrix Runout: RR-8655-1-A // '742617000027 - HERE COMES THE PAIN'",
-    "slipknot-iowa": "Matrix Runout: RR-8555-1 // '515 - DON'T YOU FUCKING PITY ME'",
-    "slipknot-vol3": "Matrix Runout: HOUDINI MANSION LA // '9.0 - THE PULSE OF THE MAGGOTS'",
-    "a7x-nightmare": "Matrix Runout: WB-524984 // 'foREVer — JIMMY SULLIVAN'"
+    "dark-side": "SHVL 804 A-2",
+    "wish-you-were-here": "SHVL 814 // SYD",
+    "led-zep-iv": "PORKY / PECKO",
+    "back-in-black": "MASTERDISK RL",
+    "slipknot-1999": "742617000027",
+    "slipknot-iowa": "515 // IOWA",
+    "slipknot-vol3": "9.0 // MANSION",
+    "a7x-nightmare": "foREVer // REV"
   };
 
   function revealDeadwax() {
+    if (!catNumEl) return;
     const current = ALBUMS[activeIdx];
-    const msg = current
-      ? DEADWAX_ETCHINGS[current.id]
-      : "Matrix Runout: JS-000-TP // 'MASTERED BY JERRYSCRIPT'";
-    playMechanicalClick(380);
-    showToast(`🔍 ${msg}`, 3800);
+    const normalCat = current ? current.catNum : "JS-000-TP";
+    const etchedCat = current ? DEADWAX_ETCHINGS[current.id] : "VMS-70 MASTER";
+    const isNowEtched = catNumEl.classList.toggle("is-etched");
+    catNumEl.textContent = isNowEtched ? etchedCat : normalCat;
+    playMechanicalClick(isNowEtched ? 380 : 210);
   }
 
   catNumEl?.addEventListener("click", revealDeadwax);
@@ -912,14 +945,12 @@
     const root = scale[idx % scale.length];
     playSynthChord([root, root * 1.25, root * 1.5], 1.25, "triangle");
     if (!isVinylOut) setVinylOut(true);
-    showToast(`♪ Faixa ${idx + 1}: ${li.textContent}`);
   });
 
   // Clicar em "jerryscript.me" no rodapé: Efeito Tape-Stop (desaceleração analógica e retomada)
   footerTitle?.addEventListener("click", () => {
     document.body.classList.add("egg-tape-stop");
     playSynthChord([311.13, 233.08, 155.56, 98], 1.1, "sawtooth");
-    showToast("📼 Tape Stop // Queda de tensão no motor...");
     setTimeout(() => {
       document.body.classList.remove("egg-tape-stop");
     }, 1150);
