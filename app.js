@@ -593,16 +593,336 @@
   const discordRow = document.querySelector("[data-copy-discord]");
   let toastTimer = null;
 
+  function showToast(msg, duration = 2600) {
+    if (!toast || !toastDesc) return;
+    toastDesc.textContent = msg;
+    toast.removeAttribute("hidden");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.setAttribute("hidden", ""), duration);
+  }
+
   discordRow?.addEventListener("click", (e) => {
     e.preventDefault();
     const user = discordRow.getAttribute("data-copy-discord");
     navigator.clipboard?.writeText(user);
-    if (toast && toastDesc) {
-      toastDesc.textContent = `Discord copiado: ${user}`;
-      toast.removeAttribute("hidden");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.setAttribute("hidden", ""), 2600);
+    showToast(`Discord copiado: ${user}`);
+  });
+
+  // =========================================================================
+  // 4. SINTETIZADOR WEB AUDIO API & EASTER EGGS SILENCIOSOS EM TODOS OS CANTOS
+  // =========================================================================
+  let audioCtx = null;
+  let crackleNode = null;
+  let crackleGain = null;
+
+  function getAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
     }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // Efeito sonoro de clique mecânico analógico / botão de vitrola
+  function playMechanicalClick(pitch = 160) {
+    const ctx = getAudio();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(pitch, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(42, ctx.currentTime + 0.065);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.065);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.07);
+  }
+
+  // Acorde atmosférico por banda/álbum ou modo secreto
+  function playSynthChord(freqs, duration = 1.4, wave = "sine") {
+    const ctx = getAudio();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    freqs.forEach((f, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(f, now + idx * 0.04);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.045, now + 0.08 + idx * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + idx * 0.04);
+      osc.stop(now + duration + 0.05);
+    });
+  }
+
+  // Chiado contínuo de agulha no vinil (Vinyl Crackle)
+  function toggleVinylCrackle(forceState) {
+    const ctx = getAudio();
+    if (!ctx) return false;
+
+    const shouldPlay = typeof forceState === "boolean" ? forceState : !crackleNode;
+    if (!shouldPlay) {
+      if (crackleNode) {
+        try { crackleNode.stop(); } catch (_) {}
+        crackleNode.disconnect();
+        crackleNode = null;
+      }
+      return false;
+    }
+
+    if (crackleNode) return true;
+    const bufferSize = ctx.sampleRate * 3;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const r = Math.random();
+      // Ruído sutil de fundo + estalos ocasionais de poeira na agulha
+      data[i] = (Math.random() * 2 - 1) * 0.012 + (r > 0.9985 ? (Math.random() * 2 - 1) * 0.22 : 0);
+    }
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 1900;
+    filter.Q.value = 0.7;
+
+    crackleGain = ctx.createGain();
+    crackleGain.gain.value = 0.35;
+
+    source.connect(filter).connect(crackleGain).connect(ctx.destination);
+    source.start();
+    crackleNode = source;
+    return true;
+  }
+
+  // --- A. OS 4 PARAFUSOS NOS CANTOS DA TELA ---
+  const cornerTL = document.getElementById("egg-corner-tl");
+  const cornerTR = document.getElementById("egg-corner-tr");
+  const cornerBL = document.getElementById("egg-corner-bl");
+  const cornerBR = document.getElementById("egg-corner-br");
+
+  const SPEEDS = [
+    { label: "33⅓ RPM", dur: "2.6s", pitch: 220 },
+    { label: "45 RPM", dur: "1.65s", pitch: 310 },
+    { label: "78 RPM", dur: "0.88s", pitch: 480 }
+  ];
+  let speedIdx = 0;
+  let isReversed = false;
+
+  // Canto Superior Esquerdo: Espectro de Prisma / Luz Negra (Dark Side)
+  cornerTL?.addEventListener("click", () => {
+    const active = document.body.classList.toggle("egg-prism-mode");
+    cornerTL.classList.toggle("is-active", active);
+    playSynthChord(active ? [293.66, 369.99, 440, 554.37, 659.25] : [329.63, 246.94], 1.6, "triangle");
+    showToast(active ? " prism // spectrum dispersion" : " prism // off");
+  });
+
+  // Canto Superior Direito: Tempestade de Brasas (Wish You Were Here / Iowa)
+  cornerTR?.addEventListener("click", () => {
+    const active = document.body.classList.toggle("egg-ember-mode");
+    cornerTR.classList.toggle("is-active", active);
+    playSynthChord(active ? [146.83, 220, 293.66, 349.23] : [220, 146.83], 1.5, "sawtooth");
+    showToast(active ? "🔥 how I wish you were here..." : "🔥 cinzas apagadas");
+  });
+
+  // Canto Inferior Esquerdo: Ciclar Rotação do Motor (33⅓ -> 45 -> 78 RPM)
+  function cycleTurntableSpeed() {
+    speedIdx = (speedIdx + 1) % SPEEDS.length;
+    const sp = SPEEDS[speedIdx];
+    document.documentElement.style.setProperty("--rpm-duration", sp.dur);
+    cornerBL?.classList.toggle("is-active", speedIdx !== 0);
+    playMechanicalClick(sp.pitch);
+
+    if (activeIdx === -1) {
+      eraTagEl.textContent = `EM ESPERA • ${sp.label}`;
+    } else {
+      const baseEra = ALBUMS[activeIdx]?.eraTag || "LP";
+      eraTagEl.textContent = speedIdx === 0 ? baseEra : `${baseEra} • ${sp.label}`;
+    }
+    showToast(`Motor Direct Drive: ${sp.label}`);
+  }
+
+  cornerBL?.addEventListener("click", cycleTurntableSpeed);
+  eraTagEl?.addEventListener("click", cycleTurntableSpeed);
+
+  // Canto Inferior Direito: Sala Escura / Lanterna (Flashlight Mode)
+  cornerBR?.addEventListener("click", () => {
+    const active = document.body.classList.toggle("egg-flashlight-mode");
+    cornerBR.classList.toggle("is-active", active);
+    playMechanicalClick(active ? 95 : 210);
+    showToast(active ? "🔦 breu total" : "💡 luzes da galeria acesas");
+  });
+
+  window.addEventListener("pointermove", (e) => {
+    if (document.body.classList.contains("egg-flashlight-mode")) {
+      document.documentElement.style.setProperty("--fx-x", `${e.clientX}px`);
+      document.documentElement.style.setProperty("--fx-y", `${e.clientY}px`);
+    }
+  });
+
+  // --- B. COMPONENTES FÍSICOS DA VITROLA E DO VINIL ---
+  const ttPlatter = document.querySelector(".tt-platter");
+  const ttPowerLed = document.querySelector(".tt-power-led");
+  const ttTonearm = document.querySelector(".tt-tonearm-assembly");
+  const ttSpindle = document.querySelector(".tt-spindle-pin");
+  const ttBadge = document.querySelector(".tt-plinth-badge");
+  const vinylCenterLabel = document.getElementById("vinyl-center-label");
+
+  // Clicar no LED da vitrola vazia: Liga o motor do prato em alta rotação estroboscópica
+  ttPowerLed?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const spinning = ttPlatter?.classList.toggle("is-spinning");
+    ttPowerLed.classList.toggle("is-overdrive", Boolean(spinning));
+    playMechanicalClick(spinning ? 280 : 110);
+    showToast(spinning ? "⚡ Prato estroboscópico: LIGADO" : "⚡ Prato em repouso");
+  });
+
+  // Clicar no braço da agulha (Tonearm): move o braço para o prato e ativa o chiado real de vinil
+  ttTonearm?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const playing = ttTonearm.classList.toggle("is-playing");
+    if (playing && ttPlatter && !ttPlatter.classList.contains("is-spinning")) {
+      ttPlatter.classList.add("is-spinning");
+      ttPowerLed?.classList.add("is-overdrive");
+    }
+    toggleVinylCrackle(playing);
+    playMechanicalClick(playing ? 240 : 150);
+    showToast(playing ? "針 Agulha no sulco // Chiado analógico ativo" : "針 Braço recolhido");
+  });
+
+  // Clicar no pino central da vitrola ou no selo central do vinil: Backmasking (Giro Reverso!)
+  function toggleBackmasking(e) {
+    e.stopPropagation();
+    isReversed = !isReversed;
+    vinylDisc?.classList.toggle("reverse-spin", isReversed);
+    ttPlatter?.classList.toggle("reverse-spin", isReversed);
+    playSynthChord(isReversed ? [440, 392, 311.13, 233.08] : [233.08, 311.13, 392, 440], 1.2, "triangle");
+    showToast(isReversed ? "↺ Backmasking // Rotação reversa (-33⅓ RPM)" : "↻ Rotação normal (+33⅓ RPM)");
+  }
+
+  ttSpindle?.addEventListener("click", toggleBackmasking);
+  vinylCenterLabel?.addEventListener("click", toggleBackmasking);
+
+  // Clicar na inscrição "JERRYSCRIPT // DIRECT DRIVE" na base da vitrola: Quartz Lock Pitch
+  ttBadge?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const active = toggleVinylCrackle();
+    playMechanicalClick(320);
+    showToast(active ? "🔊 Pré-amplificador valvulado: Chiado de agulha ON" : "🔇 Pré-amplificador valvulado: OFF");
+  });
+
+  // --- C. CABEÇALHO, PLACA, LOMBADA, FAIXAS E RODAPÉ ---
+  const eggCrest = document.getElementById("egg-crest");
+  const brandLink = document.getElementById("museum-brand-link");
+  const sleeveSpine = document.querySelector(".sleeve-spine");
+  const footerTitle = document.querySelector(".footer-title");
+
+  // Clicar no brasão "JS" no topo: gira como moeda e sorteia um disco na vitrola
+  brandLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    eggCrest?.classList.remove("spin-coin");
+    void eggCrest?.offsetWidth;
+    eggCrest?.classList.add("spin-coin");
+
+    let rnd = Math.floor(Math.random() * ALBUMS.length);
+    if (rnd === activeIdx) rnd = (rnd + 1) % ALBUMS.length;
+    playSynthChord([329.63, 440, 554.37, 659.25], 1.1, "sine");
+    selectAlbumByIndex(rnd);
+  });
+
+  // Clicar no contador "— / 08" ou "01 / 08": Desbloqueia o Disco Fantasma #09 (Test Pressing Dourado)
+  exhibitIndexEl?.addEventListener("click", () => {
+    isSwitching = false;
+    activeIdx = 99;
+    rig.classList.remove("is-empty", "flipped");
+    emptyTurntable?.setAttribute("hidden", "");
+    activeRecordGroup?.removeAttribute("hidden");
+    exhibitControls?.removeAttribute("hidden");
+    plaqueSpecs?.removeAttribute("hidden");
+    plaqueTracksWrap?.removeAttribute("hidden");
+    emptyStateCta?.setAttribute("hidden", "");
+
+    html.setAttribute("data-vibe", "gold");
+    exhibitIndexEl.textContent = "09 / 08";
+    eraTagEl.textContent = "ACETATE • WHITE LABEL TEST PRESSING";
+    titleEl.textContent = "Unreleased Acetate #00";
+    artistEl.textContent = "JerryScript // Master Dubplate";
+    specStudioEl.textContent = "Abbey Road Mastering";
+    catNumEl.textContent = "JS-000-TP";
+    notesEl.textContent =
+      "Prensagem secreta de teste em acetato dourado translúcido. Corte direto no torno Neumann VMS-70 sem compressão.";
+    vinylDisc.setAttribute("data-vinyl-style", "test-pressing-gold");
+    backTracklist.innerHTML = [
+      "Side A — Midnight Carrier Wave",
+      "Side A — Subliminal Static (432 Hz)",
+      "Side B — Ghost in the Runout Groove",
+      "Side B — Locked Groove (Infinite Loop)"
+    ].map((t) => `<li>${t}</li>`).join("");
+
+    setVinylOut(true);
+    playSynthChord([220, 277.18, 329.63, 440, 554.37], 1.9, "triangle");
+    showToast("📀 Disco Secreto #09 // Test Pressing colocado no prato");
+  });
+
+  // Clicar no Código de Catálogo ou na Lombada: Revela a inscrição oculta gravada na matriz (Deadwax Runout)
+  const DEADWAX_ETCHINGS = {
+    "dark-side": "Matrix Runout: SHVL 804 A-2 // 'THERE IS NO DARK SIDE OF THE MOON REALLY'",
+    "wish-you-were-here": "Matrix Runout: SHVL 814 A-1 // 'SHINE ON SYD'",
+    "led-zep-iv": "Matrix Runout: PORKY / PECKO DUCK // 'SO MOTE IT BE'",
+    "back-in-black": "Matrix Runout: MASTERDISK RL // 'FOR BON'",
+    "slipknot-1999": "Matrix Runout: RR-8655-1-A // '742617000027 - HERE COMES THE PAIN'",
+    "slipknot-iowa": "Matrix Runout: RR-8555-1 // '515 - DON'T YOU FUCKING PITY ME'",
+    "slipknot-vol3": "Matrix Runout: HOUDINI MANSION LA // '9.0 - THE PULSE OF THE MAGGOTS'",
+    "a7x-nightmare": "Matrix Runout: WB-524984 // 'foREVer — JIMMY SULLIVAN'"
+  };
+
+  function revealDeadwax() {
+    const current = ALBUMS[activeIdx];
+    const msg = current
+      ? DEADWAX_ETCHINGS[current.id]
+      : "Matrix Runout: JS-000-TP // 'MASTERED BY JERRYSCRIPT'";
+    playMechanicalClick(380);
+    showToast(`🔍 ${msg}`, 3800);
+  }
+
+  catNumEl?.addEventListener("click", revealDeadwax);
+  sleeveSpine?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    revealDeadwax();
+  });
+
+  // Clicar em qualquer faixa da tracklist: toca uma ressonância harmônica + destaca a faixa
+  backTracklist?.addEventListener("click", (e) => {
+    const li = e.target.closest("li");
+    if (!li) return;
+    backTracklist.querySelectorAll("li").forEach((el) => el.classList.remove("is-playing-track"));
+    li.classList.add("is-playing-track");
+
+    const idx = Array.from(backTracklist.children).indexOf(li);
+    const scale = [196, 220, 246.94, 261.63, 293.66, 329.63, 392, 440, 493.88, 523.25];
+    const root = scale[idx % scale.length];
+    playSynthChord([root, root * 1.25, root * 1.5], 1.25, "triangle");
+    if (!isVinylOut) setVinylOut(true);
+    showToast(`♪ Faixa ${idx + 1}: ${li.textContent}`);
+  });
+
+  // Clicar em "jerryscript.me" no rodapé: Efeito Tape-Stop (desaceleração analógica e retomada)
+  footerTitle?.addEventListener("click", () => {
+    document.body.classList.add("egg-tape-stop");
+    playSynthChord([311.13, 233.08, 155.56, 98], 1.1, "sawtooth");
+    showToast("📼 Tape Stop // Queda de tensão no motor...");
+    setTimeout(() => {
+      document.body.classList.remove("egg-tape-stop");
+    }, 1150);
   });
 
   // Inicializar na Vitrola Vazia

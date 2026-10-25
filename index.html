@@ -29,16 +29,25 @@
 
     <!-- Iluminação cênica e atmosfera -->
     <div class="museum-spotlight" id="museum-spotlight" aria-hidden="true"></div>
-    <div class="ambient-dust" aria-hidden="true">
+    <div class="flashlight-mask" id="flashlight-mask" aria-hidden="true"></div>
+    <div class="prism-beam-layer" id="prism-beam-layer" aria-hidden="true"></div>
+    <div class="ambient-dust" id="ambient-dust" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
     <div class="grain-layer" aria-hidden="true"></div>
 
+    <!-- Parafusos ornamentais de canto (Easter Eggs silenciosos nos 4 cantos) -->
+    <div class="corner-rivet corner-tl" id="egg-corner-tl" aria-hidden="true"></div>
+    <div class="corner-rivet corner-tr" id="egg-corner-tr" aria-hidden="true"></div>
+    <div class="corner-rivet corner-bl" id="egg-corner-bl" aria-hidden="true"></div>
+    <div class="corner-rivet corner-br" id="egg-corner-br" aria-hidden="true"></div>
+
     <header class="museum-header reveal-top">
       <div class="header-inner">
-        <a href="#" class="museum-brand">
-          <span class="brand-crest">JS</span>
-          <span class="brand-main">JERRYSCRIPT</span>
+        <a href="#" class="museum-brand" id="museum-brand-link">
+          <span class="brand-crest" id="egg-crest">JS</span>
+          <span class="brand-main" id="egg-brand-main">JERRYSCRIPT</span>
         </a>
       </div>
     </header>
