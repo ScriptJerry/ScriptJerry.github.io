@@ -52,46 +52,76 @@
 
             <div class="scene-3d" id="scene-3d">
               <div class="rig-float-wrapper" id="rig-float-wrapper">
-                <div class="rig-3d vinyl-out" id="rig-3d">
-                  <div class="vinyl-disc-wrapper" id="vinyl-disc-wrapper">
-                    <div class="vinyl-disc spinning" id="vinyl-disc" data-vinyl-style="classic-black">
-                      <div class="vinyl-rotor" id="vinyl-rotor">
-                        <div class="vinyl-grooves"></div>
-                        <div class="vinyl-label" id="vinyl-center-label">
-                          <img
-                            src="assets/covers/dark-side-label.jpg"
-                            alt=""
-                            class="vinyl-label-img"
-                            id="vinyl-label-img"
-                            draggable="false"
-                          >
-                          <div class="spindle-hole"></div>
+                <div class="rig-3d is-empty" id="rig-3d">
+                  <!-- VITROLA VAZIA 3D (Aparece quando nenhum álbum foi selecionado ainda) -->
+                  <div class="empty-turntable-3d" id="empty-turntable">
+                    <div class="tt-plinth">
+                      <div class="tt-plinth-badge">JERRYSCRIPT // DIRECT DRIVE</div>
+                      <div class="tt-power-led"></div>
+                      <!-- Prato de alumínio escovado e tapete de borracha -->
+                      <div class="tt-platter">
+                        <div class="tt-strobe-rim"></div>
+                        <div class="tt-rubber-mat">
+                          <div class="tt-mat-ring r1"></div>
+                          <div class="tt-mat-ring r2"></div>
+                          <div class="tt-mat-ring r3"></div>
+                          <div class="tt-spindle-pin"></div>
                         </div>
                       </div>
-                      <div class="vinyl-sheen" id="vinyl-sheen" aria-hidden="true"></div>
+                      <!-- Braço da agulha (Tonearm) em repouso -->
+                      <div class="tt-tonearm-assembly">
+                        <div class="tt-arm-base">
+                          <div class="tt-arm-counterweight"></div>
+                          <div class="tt-arm-pivot"></div>
+                          <div class="tt-arm-rod"></div>
+                          <div class="tt-headshell"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="sleeve-3d" id="sleeve-3d">
-                    <div class="sleeve-face sleeve-front" id="sleeve-front">
-                      <div class="sleeve-art" id="sleeve-art-container"></div>
-                      <div class="sleeve-ringwear" aria-hidden="true"></div>
-                      <div class="sleeve-glare" id="sleeve-glare" aria-hidden="true"></div>
+                  <!-- CONJUNTO DO ÁLBUM + VINIL 3D (Oculto até o visitante escolher um disco) -->
+                  <div class="active-record-group" id="active-record-group" hidden>
+                    <div class="vinyl-disc-wrapper" id="vinyl-disc-wrapper">
+                      <div class="vinyl-disc spinning" id="vinyl-disc" data-vinyl-style="classic-black">
+                        <div class="vinyl-rotor" id="vinyl-rotor">
+                          <div class="vinyl-grooves"></div>
+                          <div class="vinyl-label" id="vinyl-center-label">
+                            <img
+                              src="assets/covers/dark-side-label.jpg"
+                              alt=""
+                              class="vinyl-label-img"
+                              id="vinyl-label-img"
+                              draggable="false"
+                            >
+                            <div class="spindle-hole"></div>
+                          </div>
+                        </div>
+                        <div class="vinyl-sheen" id="vinyl-sheen" aria-hidden="true"></div>
+                      </div>
                     </div>
 
-                    <div class="sleeve-face sleeve-spine">
-                      <span id="spine-text">PINK FLOYD — THE DARK SIDE OF THE MOON</span>
-                    </div>
+                    <div class="sleeve-3d" id="sleeve-3d">
+                      <div class="sleeve-face sleeve-front" id="sleeve-front">
+                        <div class="sleeve-art" id="sleeve-art-container"></div>
+                        <div class="sleeve-ringwear" aria-hidden="true"></div>
+                        <div class="sleeve-glare" id="sleeve-glare" aria-hidden="true"></div>
+                      </div>
 
-                    <div class="sleeve-face sleeve-back" id="sleeve-back">
-                      <img
-                        src="assets/covers/dark-side-back.jpg"
-                        alt=""
-                        class="sleeve-cover-img"
-                        id="sleeve-back-img"
-                        draggable="false"
-                      >
-                      <div class="sleeve-ringwear" aria-hidden="true"></div>
+                      <div class="sleeve-face sleeve-spine">
+                        <span id="spine-text"></span>
+                      </div>
+
+                      <div class="sleeve-face sleeve-back" id="sleeve-back">
+                        <img
+                          src="assets/covers/dark-side-back.jpg"
+                          alt=""
+                          class="sleeve-cover-img"
+                          id="sleeve-back-img"
+                          draggable="false"
+                        >
+                        <div class="sleeve-ringwear" aria-hidden="true"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -100,7 +130,8 @@
 
             <div class="pedestal-shadow" aria-hidden="true"></div>
 
-            <div class="exhibit-controls" role="group">
+            <!-- Botões só aparecem quando um disco está colocado (ou atalho para ir para a grade) -->
+            <div class="exhibit-controls" id="exhibit-controls" hidden role="group">
               <button type="button" class="gallery-btn primary" id="btn-toggle-vinyl">
                 <span id="btn-vinyl-label">Guardar Disco</span>
               </button>
@@ -110,6 +141,9 @@
               <button type="button" class="gallery-btn icon-only" id="btn-reset-angle">
                 <span>Centralizar</span>
               </button>
+              <button type="button" class="gallery-btn" id="btn-eject-album">
+                <span>Retirar da Vitrola</span>
+              </button>
             </div>
           </div>
         </div>
@@ -118,27 +152,27 @@
           <div class="museum-plaque" id="museum-plaque">
             <div class="plaque-content-anim" id="plaque-anim">
               <div class="plaque-top">
-                <span class="plaque-number" id="exhibit-index">01 / 08</span>
-                <span class="plaque-era" id="active-era-tag">1973 • PROGRESSIVE ROCK</span>
+                <span class="plaque-number" id="exhibit-index">— / 08</span>
+                <span class="plaque-era" id="active-era-tag">EM ESPERA • 33⅓ RPM</span>
               </div>
 
-              <h1 class="plaque-title" id="active-album-title">The Dark Side of the Moon</h1>
-              <div class="plaque-artist" id="active-album-artist">Pink Floyd</div>
+              <h1 class="plaque-title" id="active-album-title">Vitrola em Espera</h1>
+              <div class="plaque-artist" id="active-album-artist">Nenhum disco no prato</div>
 
               <div class="plaque-divider"></div>
 
               <p class="plaque-description" id="active-album-notes">
-                Obra-prima lançada em março de 1973, gravada no Abbey Road Studios. A arte icônica do estúdio Hipgnosis traz o prisma dispersando a luz na capa frontal e convergindo o espectro na contracapa.
+                Escolha um dos discos abaixo para colocá-lo no prato e inspecionar a capa, a contracapa e o vinil em 3D.
               </p>
 
-              <dl class="plaque-specs">
+              <dl class="plaque-specs" id="plaque-specs" hidden>
                 <div>
                   <dt>GRAVADORA</dt>
-                  <dd id="spec-studio">Harvest Records</dd>
+                  <dd id="spec-studio">—</dd>
                 </div>
                 <div>
                   <dt>CATÁLOGO</dt>
-                  <dd id="active-cat-num">SHVL 804</dd>
+                  <dd id="active-cat-num">—</dd>
                 </div>
                 <div>
                   <dt>FORMATO</dt>
@@ -146,9 +180,13 @@
                 </div>
               </dl>
 
-              <div class="plaque-tracks-wrap">
+              <div class="plaque-tracks-wrap" id="plaque-tracks-wrap" hidden>
                 <div class="plaque-tracks-header">FAIXAS</div>
                 <ol class="plaque-tracklist" id="back-tracklist"></ol>
+              </div>
+
+              <div class="empty-state-cta" id="empty-state-cta">
+                <a href="#galeria" class="gallery-btn primary">Escolher um Disco ↓</a>
               </div>
             </div>
 

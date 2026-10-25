@@ -235,6 +235,9 @@
   const stage = document.getElementById("stage-3d");
   const rigFloatWrapper = document.getElementById("rig-float-wrapper");
   const rig = document.getElementById("rig-3d");
+  const emptyTurntable = document.getElementById("empty-turntable");
+  const activeRecordGroup = document.getElementById("active-record-group");
+  const exhibitControls = document.getElementById("exhibit-controls");
   const vinylDisc = document.getElementById("vinyl-disc");
   const vinylSheen = document.getElementById("vinyl-sheen");
   const vinylLabelImg = document.getElementById("vinyl-label-img");
@@ -249,6 +252,10 @@
   const titleEl = document.getElementById("active-album-title");
   const artistEl = document.getElementById("active-album-artist");
   const notesEl = document.getElementById("active-album-notes");
+  const plaqueSpecs = document.getElementById("plaque-specs");
+  const plaqueTracksWrap = document.getElementById("plaque-tracks-wrap");
+  const emptyStateCta = document.getElementById("empty-state-cta");
+
   const artContainer = document.getElementById("sleeve-art-container");
   const backImgEl = document.getElementById("sleeve-back-img");
   const spineText = document.getElementById("spine-text");
@@ -258,19 +265,21 @@
   const btnVinylLabel = document.getElementById("btn-vinyl-label");
   const btnFlipSleeve = document.getElementById("btn-flip-sleeve");
   const btnResetAngle = document.getElementById("btn-reset-angle");
+  const btnEjectAlbum = document.getElementById("btn-eject-album");
   const btnPrevAlbum = document.getElementById("btn-prev-album");
   const btnNextAlbum = document.getElementById("btn-next-album");
 
-  let activeIdx = 0;
-  let isVinylOut = true;
+  // Começa em -1 (Vitrola vazia!)
+  let activeIdx = -1;
+  let isVinylOut = false;
   let isFlipped = false;
   let isDragging = false;
   let isSwitching = false;
-  let rotX = 5;
+  let rotX = 12;
   let rotY = -14;
 
   // =========================================================================
-  // 0. TELA DE LOADING CÊNICA (PRÉ-CARREGAMENTO DAS ARTES)
+  // 0. TELA DE LOADING CÊNICA
   // =========================================================================
   function runPreloader() {
     const urls = [];
@@ -304,14 +313,49 @@
       img.src = src;
     });
 
-    // Segurança caso alguma imagem demore mais na rede
     setTimeout(finishLoading, 2800);
   }
 
   // =========================================================================
-  // 1. RENDERIZAÇÃO E TRANSIÇÃO COREOGRAFADA ENTRE ÁLBUNS
+  // 1. ESTADO DE VITROLA VAZIA E TRANSIÇÃO PARA UM ÁLBUM
   // =========================================================================
+  function setEmptyTurntableState() {
+    activeIdx = -1;
+    html.setAttribute("data-vibe", "gold");
+    rig.classList.add("is-empty");
+    rig.classList.remove("vinyl-out", "flipped");
+    isVinylOut = false;
+    isFlipped = false;
+
+    emptyTurntable?.removeAttribute("hidden");
+    activeRecordGroup?.setAttribute("hidden", "");
+    exhibitControls?.setAttribute("hidden", "");
+    plaqueSpecs?.setAttribute("hidden", "");
+    plaqueTracksWrap?.setAttribute("hidden", "");
+    emptyStateCta?.removeAttribute("hidden");
+
+    const totStr = String(ALBUMS.length).padStart(2, "0");
+    if (exhibitIndexEl) exhibitIndexEl.textContent = `— / ${totStr}`;
+    eraTagEl.textContent = "EM ESPERA • 33⅓ RPM";
+    titleEl.textContent = "Vitrola em Espera";
+    artistEl.textContent = "Nenhum disco no prato";
+    notesEl.textContent =
+      "Escolha um dos discos abaixo para colocá-lo no prato e inspecionar a capa, a contracapa e o vinil em 3D.";
+
+    document.querySelectorAll(".crate-card").forEach((card) => {
+      card.classList.remove("active");
+    });
+  }
+
   function applyAlbumData(found, idx) {
+    rig.classList.remove("is-empty");
+    emptyTurntable?.setAttribute("hidden", "");
+    activeRecordGroup?.removeAttribute("hidden");
+    exhibitControls?.removeAttribute("hidden");
+    plaqueSpecs?.removeAttribute("hidden");
+    plaqueTracksWrap?.removeAttribute("hidden");
+    emptyStateCta?.setAttribute("hidden", "");
+
     html.setAttribute("data-vibe", found.vibe || "gold");
     if (exhibitIndexEl) {
       const numStr = String(idx + 1).padStart(2, "0");
@@ -345,31 +389,25 @@
     });
   }
 
-  function selectAlbumByIndex(idx, animateTransition = true) {
+  function selectAlbumByIndex(idx) {
     const nextIdx = (idx + ALBUMS.length) % ALBUMS.length;
     const found = ALBUMS[nextIdx];
-
-    if (!animateTransition) {
-      activeIdx = nextIdx;
-      applyAlbumData(found, activeIdx);
-      setVinylOut(true);
-      return;
-    }
 
     if (isSwitching || nextIdx === activeIdx) return;
     isSwitching = true;
     activeIdx = nextIdx;
 
-    // 1. Recolhe o vinil e faz fade-out suave do álbum atual e da placa
     setVinylOut(false);
     isFlipped = false;
     rig.classList.remove("flipped");
     rigFloatWrapper?.classList.add("is-switching-out");
     plaqueAnim?.classList.add("is-fading-out");
 
-    // 2. Troca os dados no meio da transição e revela o novo disco deslizando para fora
     setTimeout(() => {
       applyAlbumData(found, activeIdx);
+      rotX = 5;
+      rotY = -14;
+      updateRigTransform();
       rigFloatWrapper?.classList.remove("is-switching-out");
       plaqueAnim?.classList.remove("is-fading-out");
 
@@ -380,9 +418,27 @@
     }, 340);
   }
 
+  function ejectToEmptyTurntable() {
+    if (isSwitching || activeIdx === -1) return;
+    isSwitching = true;
+    setVinylOut(false);
+    rigFloatWrapper?.classList.add("is-switching-out");
+    plaqueAnim?.classList.add("is-fading-out");
+
+    setTimeout(() => {
+      setEmptyTurntableState();
+      rotX = 12;
+      rotY = -14;
+      updateRigTransform();
+      rigFloatWrapper?.classList.remove("is-switching-out");
+      plaqueAnim?.classList.remove("is-fading-out");
+      isSwitching = false;
+    }, 340);
+  }
+
   function selectAlbum(albumId) {
     const idx = ALBUMS.findIndex((a) => a.id === albumId);
-    if (idx !== -1) selectAlbumByIndex(idx, true);
+    if (idx !== -1) selectAlbumByIndex(idx);
   }
 
   function setVinylOut(outState) {
@@ -395,6 +451,7 @@
   }
 
   function toggleFlip() {
+    if (activeIdx === -1) return;
     isFlipped = !isFlipped;
     rig.classList.toggle("flipped", isFlipped);
   }
@@ -415,7 +472,7 @@
   // 2. INTERAÇÃO 3D COM O MOUSE / TOQUE NO PALCO
   // =========================================================================
   stage?.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("button")) return;
+    if (e.target.closest("button, a")) return;
     isDragging = true;
     rig.classList.remove("Smooth-transition");
     stage.setPointerCapture(e.pointerId);
@@ -425,13 +482,14 @@
     const rect = stage.getBoundingClientRect();
     const normX = (e.clientX - rect.left) / rect.width - 0.5;
     const normY = (e.clientY - rect.top) / rect.height - 0.5;
+    const baseRotX = activeIdx === -1 ? 12 : 5;
 
     if (isDragging) {
       rotY = Math.max(-45, Math.min(45, normX * 85));
-      rotX = Math.max(-28, Math.min(28, -normY * 58));
+      rotX = Math.max(-28, Math.min(32, -normY * 58));
     } else {
       rotY = -12 + normX * 24;
-      rotX = 5 - normY * 18;
+      rotX = baseRotX - normY * 18;
     }
     updateRigTransform();
   });
@@ -443,14 +501,14 @@
   stage?.addEventListener("pointerleave", () => {
     if (!isDragging) {
       rig.classList.add("Smooth-transition");
-      rotX = 5;
+      rotX = activeIdx === -1 ? 12 : 5;
       rotY = -14;
       updateRigTransform();
     }
   });
 
   stage?.addEventListener("dblclick", (e) => {
-    if (e.target.closest("button")) return;
+    if (e.target.closest("button, a") || activeIdx === -1) return;
     setVinylOut(!isVinylOut);
   });
 
@@ -460,16 +518,23 @@
     rig.classList.add("Smooth-transition");
     isFlipped = false;
     rig.classList.remove("flipped");
-    rotX = 5;
+    rotX = activeIdx === -1 ? 12 : 5;
     rotY = -14;
     updateRigTransform();
   });
+  btnEjectAlbum?.addEventListener("click", ejectToEmptyTurntable);
 
-  btnPrevAlbum?.addEventListener("click", () => selectAlbumByIndex(activeIdx - 1, true));
-  btnNextAlbum?.addEventListener("click", () => selectAlbumByIndex(activeIdx + 1, true));
+  btnPrevAlbum?.addEventListener("click", () => {
+    if (activeIdx === -1) selectAlbumByIndex(ALBUMS.length - 1);
+    else selectAlbumByIndex(activeIdx - 1);
+  });
+  btnNextAlbum?.addEventListener("click", () => {
+    if (activeIdx === -1) selectAlbumByIndex(0);
+    else selectAlbumByIndex(activeIdx + 1);
+  });
 
   // =========================================================================
-  // 3. MONTAR A GALERIA COM ANIMAÇÃO DE REVEAL EM CASCATA NO SCROLL
+  // 3. MONTAR A GRADE DE DISCOS COM REVEAL NO SCROLL
   // =========================================================================
   function renderCrate() {
     if (!crateGrid) return;
@@ -477,7 +542,7 @@
     crateGrid.innerHTML = ALBUMS.map(
       (album, i) => `
         <article
-          class="crate-card ${album.id === ALBUMS[activeIdx].id ? "active" : ""}"
+          class="crate-card"
           data-album-id="${album.id}"
           style="transition-delay: ${(i % 4) * 85}ms"
         >
@@ -540,9 +605,9 @@
     }
   });
 
-  // Inicializar
+  // Inicializar na Vitrola Vazia
   renderCrate();
-  selectAlbumByIndex(0, false);
+  setEmptyTurntableState();
   updateRigTransform();
   runPreloader();
 })();

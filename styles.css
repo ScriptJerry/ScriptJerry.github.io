@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JERRYSCRIPT.ME — Galeria & Vitrine 3D com Preloader e Transições Cênicas
+   JERRYSCRIPT.ME — Galeria & Vitrola 3D com Estado Inicial Vazio e Preloader
    ========================================================================== */
 
 :root {
@@ -48,6 +48,10 @@ body {
 
 body.is-loading {
   overflow: hidden;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -290,7 +294,7 @@ body.is-ready .reveal-right {
 }
 
 /* ==========================================================================
-   VITRINE 3D PRINCIPAL & TRANSIÇÃO ENTRE ÁLBUNS
+   VITRINE 3D PRINCIPAL & VITROLA VAZIA
    ========================================================================== */
 .museum-main {
   position: relative;
@@ -365,7 +369,6 @@ body.is-ready .reveal-right {
   padding: 20px;
 }
 
-/* Flutuação orgânica contínua no ar + transição suave de troca de disco */
 .rig-float-wrapper {
   transform-style: preserve-3d;
   animation: ambientHover 6.5s ease-in-out infinite;
@@ -395,7 +398,205 @@ body.is-ready .reveal-right {
   transition: transform 0.65s var(--ease-cinema);
 }
 
-/* CAPA 3D */
+.active-record-group {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+/* ==========================================================================
+   MODELO 3D DA VITROLA VAZIA (Plinth, Prato Estroboscópico e Braço Tonearm)
+   ========================================================================== */
+.empty-turntable-3d {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tt-plinth {
+  width: 320px;
+  height: 320px;
+  background: linear-gradient(145deg, #1b1714 0%, #100e0c 100%);
+  border: 1px solid rgba(207, 169, 104, 0.28);
+  border-radius: 8px;
+  box-shadow:
+    -14px 24px 44px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  transform: translateZ(4px);
+}
+
+.tt-plinth-badge {
+  position: absolute;
+  bottom: 14px;
+  left: 18px;
+  font-size: 0.54rem;
+  letter-spacing: 2px;
+  color: var(--gold);
+  opacity: 0.75;
+}
+
+.tt-power-led {
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #cfa968;
+  box-shadow: 0 0 10px #cfa968;
+  animation: pulseLed 2.8s infinite ease-in-out;
+}
+
+@keyframes pulseLed {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.35; }
+}
+
+.tt-platter {
+  position: absolute;
+  top: 22px;
+  left: 20px;
+  width: 248px;
+  height: 248px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 25deg,
+    #2b2824 0deg,
+    #46423d 45deg,
+    #1f1c19 110deg,
+    #3d3934 180deg,
+    #25221f 250deg,
+    #47433e 315deg,
+    #2b2824 360deg
+  );
+  border: 2px solid #575148;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tt-strobe-rim {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 2px dashed rgba(207, 169, 104, 0.35);
+  pointer-events: none;
+}
+
+.tt-rubber-mat {
+  width: 224px;
+  height: 224px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #141312 0%, #0b0a09 100%);
+  border: 1px solid #262320;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tt-mat-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.tt-mat-ring.r1 { width: 186px; height: 186px; }
+.tt-mat-ring.r2 { width: 136px; height: 136px; }
+.tt-mat-ring.r3 { width: 82px; height: 82px; background: rgba(207, 169, 104, 0.03); }
+
+/* Pino central metálico da vitrola vazia */
+.tt-spindle-pin {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f5efe6 0%, #8c8275 65%, #2b2723 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+/* Braço Tonearm em repouso na lateral direita */
+.tt-tonearm-assembly {
+  position: absolute;
+  top: 28px;
+  right: 16px;
+  width: 48px;
+  height: 230px;
+  pointer-events: none;
+}
+
+.tt-arm-base {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tt-arm-pivot {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #38332e 0%, #171513 75%);
+  border: 1px solid rgba(207, 169, 104, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.tt-arm-counterweight {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 16px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #575047, #a39788, #453f38);
+}
+
+.tt-arm-rod {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%) rotate(4deg);
+  width: 5px;
+  height: 148px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6e655a, #d6cbbd, #524b42);
+  box-shadow: -2px 4px 8px rgba(0, 0, 0, 0.7);
+}
+
+.tt-headshell {
+  position: absolute;
+  bottom: 22px;
+  left: 42%;
+  transform: translateX(-50%) rotate(18deg);
+  width: 14px;
+  height: 26px;
+  border-radius: 2px;
+  background: #1f1c18;
+  border: 1px solid var(--gold);
+}
+
+.empty-state-cta {
+  padding-top: 8px;
+}
+
+.empty-state-cta .gallery-btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   CAPA 3D & DISCO DE VINIL 12"
+   ========================================================================== */
 .sleeve-3d {
   position: absolute;
   inset: 0;
@@ -483,9 +684,6 @@ body.is-ready .reveal-right {
   overflow: hidden;
 }
 
-/* ==========================================================================
-   DISCO DE VINIL 12"
-   ========================================================================== */
 .vinyl-disc-wrapper {
   position: absolute;
   top: 8px;
@@ -701,7 +899,7 @@ body.is-ready .reveal-right {
 }
 
 /* ==========================================================================
-   PLACA DO ÁLBUM (Com transição suave ao trocar de obra)
+   PLACA DO ÁLBUM
    ========================================================================== */
 .museum-plaque {
   background: var(--bg-plaque);
@@ -854,7 +1052,7 @@ body.is-ready .reveal-right {
 #btn-next-album:hover { transform: translateX(4px); }
 
 /* ==========================================================================
-   GRADE DE DISCOS COM REVEAL EM CASCATA NO SCROLL
+   GRADE DE DISCOS
    ========================================================================== */
 .gallery-Wing {
   padding: 72px 0 92px;
@@ -1072,10 +1270,6 @@ body.is-ready .reveal-right {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.museum-toast[hidden] {
-  display: none !important;
-}
-
 @media (max-width: 980px) {
   .header-inner,
   .museum-main {
@@ -1087,9 +1281,18 @@ body.is-ready .reveal-right {
     gap: 36px;
     min-height: auto;
   }
-  .rig-3d {
+  .rig-3d,
+  .tt-plinth {
     width: 260px;
     height: 260px;
+  }
+  .tt-platter {
+    width: 198px;
+    height: 198px;
+  }
+  .tt-rubber-mat {
+    width: 178px;
+    height: 178px;
   }
   .vinyl-disc-wrapper {
     width: 246px;
